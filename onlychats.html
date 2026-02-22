@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OnlyChats — dert de paylaş, laf da</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0d0b;
+    --surface: #161512;
+    --card: #1c1a17;
+    --border: #2a2720;
+    --accent: #e8a045;
+    --accent-dim: #c4823a;
+    --red: #c0392b;
+    --text: #d4cfc6;
+    --text-dim: #7a756c;
+    --text-muted: #4a4640;
+    --online: #4caf76;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* TOP NAV */
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    background: rgba(14,13,11,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .logo span { font-style: italic; color: var(--text-dim); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
+
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+
+  .nav-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-link:hover { color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0d0b;
+    border: none;
+    padding: 6px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.05em;
+  }
+  .btn-primary:hover { background: #f0b060; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    gap: 0;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* LEFT SIDEBAR */
+  .sidebar-left {
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
+  .sidebar-section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+    margin-top: 1.2rem;
+  }
+  .sidebar-section-title:first-child { margin-top: 0; }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-bottom: 2px;
+  }
+  .category-item:hover, .category-item.active {
+    background: var(--card);
+    color: var(--text);
+  }
+  .category-item.active { border-left: 2px solid var(--accent); padding-left: 6px; }
+
+  .cat-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 1px 5px;
+  }
+
+  /* CENTER FEED */
+  .feed {
+    border-right: 1px solid var(--border);
+  }
+
+  .feed-header {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 56px;
+    background: rgba(14,13,11,0.95);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+  }
+
+  .feed-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .feed-filters { display: flex; gap: 0.4rem; }
+  .filter-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,160,69,0.08); }
+
+  /* ENTRY CARD */
+  .entry-card {
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    animation: fadeIn 0.3s ease;
+  }
+  .entry-card:hover { background: rgba(255,255,255,0.02); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .entry-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .entry-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .entry-meta { flex: 1; }
+
+  .entry-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+  .entry-title:hover { color: var(--accent); }
+
+  .entry-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .entry-user {
+    color: var(--accent-dim);
+    font-weight: 500;
+  }
+
+  .entry-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .tag {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+    border: 1px solid;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: lowercase;
+  }
+  .tag-dert { border-color: #8b4040; color: #c07070; background: rgba(139,64,64,0.1); }
+  .tag-günlük { border-color: #4a6b8a; color: #7aafc0; background: rgba(74,107,138,0.1); }
+  .tag-tavsiye { border-color: #5a7a4a; color: #8ab070; background: rgba(90,122,74,0.1); }
+  .tag-şikayet { border-color: #7a5a3a; color: #b09060; background: rgba(122,90,58,0.1); }
+
+  .entry-preview {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 0.8rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .entry-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .entry-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .entry-stat svg { width: 13px; height: 13px; }
+  .entry-stat:hover { color: var(--accent); cursor: pointer; }
+
+  .entry-chat-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .entry-chat-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* RIGHT SIDEBAR */
+  .sidebar-right {
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
+  .widget {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .widget-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .widget-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .trending-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .trending-item:last-child { border-bottom: none; }
+  .trending-item:hover { opacity: 0.7; }
+
+  .trending-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    min-width: 16px;
+  }
+
+  .trending-text {
+    font-size: 0.83rem;
+    color: var(--text-dim);
+    line-height: 1.3;
+  }
+
+  .trending-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  /* ONLINE USERS */
+  .online-list { display: flex; flex-direction: column; gap: 6px; }
+  .online-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .online-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--online);
+    box-shadow: 0 0 6px var(--online);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* CHAT MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .chat-window {
+    width: 340px;
+    height: 480px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.25s ease;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .chat-header {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  .chat-user-info { display: flex; align-items: center; gap: 8px; }
+  .chat-avatar {
+    width: 28px; height: 28px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+  }
+  .chat-username { font-size: 0.85rem; font-weight: 500; }
+  .chat-timer {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--red);
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    padding: 2px 6px;
+  }
+
+  .chat-close {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 1.1rem; line-height: 1;
+    transition: color 0.15s;
+  }
+  .chat-close:hover { color: var(--text); }
+
+  .chat-warning {
+    padding: 6px 10px;
+    background: rgba(192,57,43,0.08);
+    border-bottom: 1px solid rgba(192,57,43,0.2);
+    font-size: 0.72rem;
+    color: #c07070;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .msg {
+    max-width: 80%;
+    padding: 6px 10px;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    border: 1px solid;
+  }
+  .msg-them {
+    align-self: flex-start;
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .msg-me {
+    align-self: flex-end;
+    background: rgba(232,160,69,0.1);
+    border-color: rgba(232,160,69,0.3);
+    color: var(--text);
+  }
+  .msg-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .msg-them .msg-time { text-align: left; }
+  .msg-me .msg-time { text-align: right; }
+
+  .chat-input-area {
+    border-top: 1px solid var(--border);
+    padding: 0.6rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.83rem;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+    height: 36px;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--text-muted); }
+
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    color: #0e0d0b;
+    padding: 0 12px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .send-btn:hover { background: #f0b060; }
+
+  /* ENTRY MODAL */
+  .entry-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .entry-modal.open { display: flex; }
+
+  .entry-modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .entry-modal-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 1;
+  }
+
+  .entry-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.3;
+    flex: 1;
+    padding-right: 1rem;
+  }
+
+  .entry-modal-body { padding: 1.5rem; }
+  .entry-modal-text {
+    font-size: 0.92rem;
+    line-height: 1.8;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+  }
+
+  .entry-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .reply-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .reply-input:focus { border-color: var(--accent); }
+  .reply-input::placeholder { color: var(--text-muted); }
+
+  /* WRITE ENTRY */
+  .write-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    margin: 1.2rem 1.5rem;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .write-bar:hover { border-color: var(--accent); }
+
+  .write-placeholder {
+    flex: 1;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* NEW ENTRY MODAL */
+  .new-entry-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .new-entry-modal.open { display: flex; }
+
+  .new-entry-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 600px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .new-entry-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .new-entry-form { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; }
+
+  .form-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+
+  .form-input, .form-textarea, .form-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+  .form-select option { background: var(--card); }
+
+  .char-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.2rem;
+  }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem; }
+
+  .btn-cancel {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 7px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 8px 20px;
+    font-size: 0.83rem;
+    font-family: 'IBM Plex Mono', monospace;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 500;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .sidebar-left, .sidebar-right { display: none; }
+  }
+
+  /* HR DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#" onclick="return false">OnlyChats <span>sadece burada konuşulur</span></a>
+  <div class="nav-right">
+    <a class="nav-link" href="#" onclick="return false">Keşfet</a>
+    <a class="nav-link" href="#" onclick="return false">Canlı</a>
+    <a class="nav-link" href="#" onclick="return false">Mesajlar</a>
+    <button class="btn-primary" onclick="openNewEntry()">+ Giriş Yap</button>
+  </div>
+</nav>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar-left">
+    <div class="sidebar-section-title">kategoriler</div>
+    <a class="category-item active" href="#" onclick="return false">
+      <span>🔥 tümü</span>
+      <span class="cat-count">2.4k</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>💔 dert & dertleşme</span>
+      <span class="cat-count">847</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>☕ günlük hayat</span>
+      <span class="cat-count">612</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>😤 şikayet kutusu</span>
+      <span class="cat-count">431</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>🤔 tavsiye ister misin</span>
+      <span class="cat-count">289</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>🌙 gece düşünceleri</span>
+      <span class="cat-count">198</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>😂 eğlence</span>
+      <span class="cat-count">503</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>💼 iş & kariyer</span>
+      <span class="cat-count">164</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>❤️ ilişkiler</span>
+      <span class="cat-count">321</span>
+    </a>
+    <a class="category-item" href="#" onclick="return false">
+      <span>🏙️ şehir söylemleri</span>
+      <span class="cat-count">88</span>
+    </a>
+
+    <div class="sidebar-section-title">bilgi</div>
+    <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.6; padding: 0 8px;">
+      Özel mesajlar <span style="color:var(--red)">24 saat</span> sonra otomatik olarak silinir. İki taraf da onayladıktan sonra sohbet başlar.
+    </div>
+  </aside>
+
+  <!-- CENTER FEED -->
+  <main class="feed">
+
+    <!-- WRITE BAR -->
+    <div class="write-bar" onclick="openNewEntry()">
+      <div class="entry-avatar" style="flex-shrink:0;">sen</div>
+      <span class="write-placeholder">aklından ne geçiyor? dertini paylaş...</span>
+      <button class="btn-primary" style="font-size:0.75rem; padding: 4px 12px;" onclick="event.stopPropagation(); openNewEntry()">yaz</button>
+    </div>
+
+    <div class="feed-header">
+      <span class="feed-title">son girişler</span>
+      <div class="feed-filters">
+        <button class="filter-btn active">yeni</button>
+        <button class="filter-btn">hot</button>
+        <button class="filter-btn">tartışmalı</button>
+      </div>
+    </div>
+
+    <div id="feed-list">
+      <!-- Entries rendered by JS -->
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="sidebar-right">
+    <div class="widget">
+      <div class="widget-title">şu an çevrimiçi</div>
+      <div class="online-list">
+        <div class="online-user"><div class="online-dot"></div> isimsiz_kedi</div>
+        <div class="online-user"><div class="online-dot"></div> yalnız_gezgin</div>
+        <div class="online-user"><div class="online-dot"></div> gece_kuşu_42</div>
+        <div class="online-user"><div class="online-dot"></div> sessiz_biri</div>
+        <div class="online-user"><div class="online-dot"></div> kahvekokusu</div>
+      </div>
+      <div style="margin-top:0.8rem; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--text-muted);">+2.831 aktif kullanıcı</div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-title">trend başlıklar</div>
+      <div id="trending-list"></div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-title">chat sistemi</div>
+      <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.7;">
+        <p>↗ Bir girişe yanıt verince <span style="color:var(--accent)">DM</span> açabilirsin.</p>
+        <p style="margin-top:0.4rem;">⏱ Sohbetler <span style="color:var(--red); font-weight:500;">24 saat</span> sonra sona erer.</p>
+        <p style="margin-top:0.4rem;">🔒 Tüm mesajlar şifreli saklanır.</p>
+        <p style="margin-top:0.4rem;">🚫 Paylaşılan içerik otomatik silinir.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chat-modal">
+  <div class="chat-window">
+    <div class="chat-header">
+      <div class="chat-user-info">
+        <div class="chat-avatar" id="chat-avatar">kd</div>
+        <span class="chat-username" id="chat-username">isimsiz_kedi</span>
+      </div>
+      <span class="chat-timer" id="chat-timer">23:47:12</span>
+      <button class="chat-close" onclick="closeChat()">✕</button>
+    </div>
+    <div class="chat-warning">⚠ Bu sohbet 24 saat sonra otomatik olarak silinecek</div>
+    <div class="chat-messages" id="chat-messages">
+      <div>
+        <div class="msg msg-them">Merhaba, giriş yazdıklarında çok tanıdık geldi...</div>
+        <div class="msg-time">14:32</div>
+      </div>
+      <div>
+        <div class="msg msg-me">Gerçekten mi? Benzer bir şey yaşadın mı?</div>
+        <div class="msg-time">14:33</div>
+      </div>
+      <div>
+        <div class="msg msg-them">Aynen. Uzun süredir bunu anlatacak birini arıyordum.</div>
+        <div class="msg-time">14:35</div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" type="text" placeholder="yaz..." id="chat-input" onkeydown="sendMsg(event)">
+      <button class="send-btn" onclick="sendMsgBtn()">gönder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY MODAL -->
+<div class="entry-modal" id="entry-modal">
+  <div class="entry-modal-box">
+    <div class="entry-modal-header">
+      <div class="entry-modal-title" id="modal-title"></div>
+      <button class="chat-close" onclick="closeEntryModal()">✕</button>
+    </div>
+    <div class="entry-modal-body">
+      <div class="entry-modal-text" id="modal-text"></div>
+      <div id="modal-comments"></div>
+    </div>
+    <div class="entry-modal-footer">
+      <div class="chat-avatar" style="flex-shrink:0;">sen</div>
+      <input class="reply-input" type="text" placeholder="yanıt ekle..." id="reply-input" onkeydown="addReply(event)">
+      <button class="btn-primary" onclick="addReplyBtn()">yanıtla</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW ENTRY MODAL -->
+<div class="new-entry-modal" id="new-entry-modal">
+  <div class="new-entry-box">
+    <div class="new-entry-header">
+      <span style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700;">Yeni Giriş</span>
+      <button class="chat-close" onclick="closeNewEntry()">✕</button>
+    </div>
+    <div class="new-entry-form">
+      <div>
+        <div class="form-label">başlık</div>
+        <input class="form-input" type="text" placeholder="ne hakkında konuşmak istiyorsun?" id="new-title" maxlength="100" oninput="updateTitleCount()">
+        <div class="char-count"><span id="title-count">0</span>/100</div>
+      </div>
+      <div>
+        <div class="form-label">kategori</div>
+        <select class="form-select" id="new-category">
+          <option value="günlük">☕ günlük hayat</option>
+          <option value="dert">💔 dert & dertleşme</option>
+          <option value="şikayet">😤 şikayet kutusu</option>
+          <option value="tavsiye">🤔 tavsiye ister misin</option>
+          <option value="gece">🌙 gece düşünceleri</option>
+          <option value="ilişkiler">❤️ ilişkiler</option>
+          <option value="kariyer">💼 iş & kariyer</option>
+        </select>
+      </div>
+      <div>
+        <div class="form-label">içerik</div>
+        <textarea class="form-textarea" placeholder="dertini döküver, burada yargılanmak yok..." id="new-content" maxlength="2000" oninput="updateContentCount()"></textarea>
+        <div class="char-count"><span id="content-count">0</span>/2000</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text-muted);">
+        <input type="checkbox" id="anon-check" style="accent-color:var(--accent); cursor:pointer;" checked>
+        <label for="anon-check" style="cursor:pointer;">anonim olarak paylaş</label>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeNewEntry()">iptal</button>
+        <button class="btn-primary" onclick="submitEntry()" style="padding:7px 20px; font-size:0.85rem;">paylaş</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// DATA
+const entries = [
+  {
+    id: 1,
+    title: "işten atıldım ama kimseye söyleyemedim, her sabah kalkar gibi yapıyorum",
+    user: "gece_kuşu_42",
+    time: "3 dk önce",
+    category: "dert",
+    content: "3 yıldır çalıştığım yerden geçen Cuma işten çıkardılar. Ailem bilmiyor. Her sabah kalkar gibi yapıyorum, giyiniyorum, evden çıkıyorum. Kahvecide oturuyorum saatlerce. Telefona bakıyorum. Eve döndüğümde yorgunmuşum gibi davranıyorum.\n\nBunu anlatacak birileri arıyordum. Burada beni tanıyan yok, o yüzden rahat hissettim.",
+    views: 234,
+    comments: 47,
+    hearts: 89,
+    replies: [
+      { user: "isimsiz_kedi", text: "Seni anlıyorum. Ben de geçen yıl benzer bir şey yaşadım. O kahveci saatleri çok ağır oluyor.", time: "1 dk önce" }
+    ]
+  },
+  {
+    id: 2,
+    title: "annem benim için 45 yaşında evlenmemiş birini bulmuş, 'görüşsek ne olur' diyor",
+    user: "sessiz_biri",
+    time: "12 dk önce",
+    category: "şikayet",
+    content: "Yahu 28 yaşındayım. Kariyer yapmaya çalışıyorum. Annem benim için il dışından biri bulmuş. 'Görüşsek ne olur ki' diyor. Ne olur olmaz da...\n\nEn kötüsü bunu söylerken çok masum bakıyor. Kızamıyorum bile.",
+    views: 891,
+    comments: 112,
+    hearts: 203,
+    replies: [
+      { user: "kahvekokusu", text: "Hahah bu çok tanıdık geldi. Annem de 'Yaşı kaç abi sormak ayıp mı?' diye sorar durur.", time: "8 dk önce" },
+      { user: "yalnız_gezgin", text: "Ailelerin bu konuda ortak bir ağı var sanki :)", time: "5 dk önce" }
+    ]
+  },
+  {
+    id: 3,
+    title: "eskiden çok seven birinden sms aldım. 5 yıl sonra 'nasılsın'",
+    user: "isimsiz_kedi",
+    time: "28 dk önce",
+    category: "dert",
+    content: "5 yıl. Tam 5 yıl geçti. Bugün telefona baktım, ondan mesaj var. 'Nasılsın?' diye.\n\nNe diyeceğimi bilemedim. Hâlâ bilmiyorum. Telefon elimde öylece duruyor.",
+    views: 1204,
+    comments: 89,
+    hearts: 441,
+    replies: []
+  },
+  {
+    id: 4,
+    title: "bugün otobüste ağladım, kimse bakmadı, şehir yaşamı bu sanırım",
+    user: "kahvekokusu",
+    time: "1 saat önce",
+    category: "günlük",
+    content: "İstanbul'da 4 yıldır yaşıyorum. Bugün öğleden sonra işten çıktım, 45 dakika otobüste geldim. Bir ara gözlerim doldu, ağlamaya başladım.\n\nKimse bakmadı. Kulaklığındaki müziğe devam etti. Herkes kendi içindeydi.\n\nBilmiyorum, bu beni üzdü mü rahatlattı mı.",
+    views: 3421,
+    comments: 234,
+    hearts: 876,
+    replies: [
+      { user: "gece_kuşu_42", text: "İstanbul tam böyle bir yer. Hem yalnızlıktan ölürsün hem de o yalnızlık seni rahatlatır.", time: "45 dk önce" },
+      { user: "sessiz_biri", text: "Ben de yaşadım bunu. 'Kimse görmüyor' diye daha rahat ağlanıyor bazen.", time: "32 dk önce" }
+    ]
+  },
+  {
+    id: 5,
+    title: "tavsiye: 5 yıllık ilişkiyi bitirip yalnız kalmak mı, yoksa devam mı?",
+    user: "yalnız_gezgin",
+    time: "2 saat önce",
+    category: "tavsiye",
+    content: "Romantizm yok. Kavga da yok aslında. Sadece hiçbir şey yok. 5 yıl olmuş. İkimiz de mecburiyetten devam ediyoruz sanki.\n\nBitirirsem 30'una yaklaşmış biri olarak yeniden başlayacağım. Korku bu.\n\nNe yaparsınız siz olsanız?",
+    views: 2109,
+    comments: 198,
+    hearts: 312,
+    replies: []
+  },
+  {
+    id: 6,
+    title: "sabahları bir çay içip hiçbir şey düşünmeden pencerenin önünde oturuyorum, bu mutluluk mu",
+    user: "gece_kuşu_42",
+    time: "3 saat önce",
+    category: "günlük",
+    content: "Geçen hafta fark ettim. Her sabah çayımı alıyorum, camın önüne geçiyorum, dışarıya bakıyorum. Beş dakika, belki on. Hiçbir şey düşünmüyorum.\n\nSonra gün başlıyor. Ama o on dakika çok iyi geliyor. Bu yeterli mi mutluluk için?",
+    views: 876,
+    comments: 67,
+    hearts: 298,
+    replies: []
+  }
+];
+
+const trending = [
+  { text: "işten atılma", count: 234 },
+  { text: "aile baskısı", count: 198 },
+  { text: "eski sevgiliden mesaj", count: 187 },
+  { text: "şehir yalnızlığı", count: 156 },
+  { text: "ilişkide boşluk", count: 134 },
+  { text: "sabah ritüeli", count: 112 },
+  { text: "karar veremiyorum", count: 98 },
+];
+
+// STATE
+let currentEntry = null;
+let chatTimerInterval = null;
+let timerSeconds = 23 * 3600 + 47 * 60 + 12;
+
+// RENDER ENTRIES
+function renderEntries() {
+  const list = document.getElementById('feed-list');
+  list.innerHTML = '';
+  entries.forEach((e, i) => {
+    const card = document.createElement('div');
+    card.className = 'entry-card';
+    card.style.animationDelay = (i * 0.05) + 's';
+    const tagClass = 'tag-' + (e.category === 'günlük' ? 'günlük' : e.category === 'dert' ? 'dert' : e.category === 'şikayet' ? 'şikayet' : 'tavsiye');
+    const tagLabel = e.category === 'dert' ? 'dert' : e.category === 'şikayet' ? 'şikayet' : e.category === 'tavsiye' ? 'tavsiye' : 'günlük';
+    const initials = e.user.slice(0,2).toUpperCase();
+
+    card.innerHTML = `
+      <div class="entry-top">
+        <div class="entry-avatar">${initials}</div>
+        <div class="entry-meta">
+          <div class="entry-title" onclick="openEntry(${e.id})">${e.title}</div>
+          <div class="entry-subtitle">
+            <span class="entry-user">${e.user}</span>
+            <span class="entry-time">${e.time}</span>
+            <span class="tag ${tagClass}">${tagLabel}</span>
+          </div>
+        </div>
+      </div>
+      <div class="entry-preview">${e.content}</div>
+      <div class="entry-footer">
+        <span class="entry-stat" onclick="heartEntry(${e.id}, this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          ${e.hearts}
+        </span>
+        <span class="entry-stat" onclick="openEntry(${e.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          ${e.comments}
+        </span>
+        <span class="entry-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          ${e.views}
+        </span>
+        <button class="entry-chat-btn" onclick="openChatFromEntry('${e.user}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          dm at
+        </button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// RENDER TRENDING
+function renderTrending() {
+  const list = document.getElementById('trending-list');
+  list.innerHTML = trending.map((t, i) => `
+    <div class="trending-item">
+      <span class="trending-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="trending-text">${t.text}</span>
+      <span class="trending-count">${t.count}</span>
+    </div>
+  `).join('');
+}
+
+// OPEN ENTRY
+function openEntry(id) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+  currentEntry = entry;
+  document.getElementById('modal-title').textContent = entry.title;
+  document.getElementById('modal-text').textContent = entry.content;
+
+  const commentsDiv = document.getElementById('modal-comments');
+  if (entry.replies.length > 0) {
+    commentsDiv.innerHTML = '<div style="border-top:1px solid var(--border); padding-top:1rem; margin-top:0.5rem;">' +
+      '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.8rem;">yanıtlar</div>' +
+      entry.replies.map(r => `
+        <div style="display:flex; gap:8px; margin-bottom:0.8rem; align-items:flex-start;">
+          <div class="chat-avatar">${r.user.slice(0,2).toUpperCase()}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.75rem; color:var(--accent-dim); margin-bottom:3px; font-weight:500;">${r.user}</div>
+            <div style="font-size:0.88rem; color:var(--text-dim); line-height:1.6;">${r.text}</div>
+            <div style="font-size:0.68rem; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; margin-top:3px;">${r.time}</div>
+          </div>
+        </div>
+      `).join('') + '</div>';
+  } else {
+    commentsDiv.innerHTML = '<div style="text-align:center; padding:1.5rem; color:var(--text-muted); font-size:0.83rem; font-style:italic;">henüz yanıt yok, ilk yanıtı sen yaz</div>';
+  }
+
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+function closeEntryModal() {
+  document.getElementById('entry-modal').classList.remove('open');
+  currentEntry = null;
+}
+
+// ADD REPLY
+function addReply(e) { if (e.key === 'Enter') addReplyBtn(); }
+function addReplyBtn() {
+  const input = document.getElementById('reply-input');
+  const text = input.value.trim();
+  if (!text || !currentEntry) return;
+
+  currentEntry.replies.push({ user: 'sen', text, time: 'şimdi' });
+  currentEntry.comments++;
+  input.value = '';
+  openEntry(currentEntry.id);
+  renderEntries();
+  showToast('Yanıtın eklendi');
+}
+
+// CHAT
+function openChatFromEntry(username) {
+  document.getElementById('chat-username').textContent = username;
+  document.getElementById('chat-avatar').textContent = username.slice(0,2).toUpperCase();
+  document.getElementById('chat-modal').classList.add('open');
+  startChatTimer();
+  showToast(`${username} ile 24 saatlik sohbet başladı`);
+}
+
+function closeChat() {
+  document.getElementById('chat-modal').classList.remove('open');
+  if (chatTimerInterval) clearInterval(chatTimerInterval);
+}
+
+function startChatTimer() {
+  if (chatTimerInterval) clearInterval(chatTimerInterval);
+  chatTimerInterval = setInterval(() => {
+    timerSeconds--;
+    if (timerSeconds <= 0) {
+      clearInterval(chatTimerInterval);
+      document.getElementById('chat-timer').textContent = 'SONA ERDİ';
+      return;
+    }
+    const h = Math.floor(timerSeconds / 3600);
+    const m = Math.floor((timerSeconds % 3600) / 60);
+    const s = timerSeconds % 60;
+    document.getElementById('chat-timer').textContent =
+      String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+function sendMsg(e) { if (e.key === 'Enter') sendMsgBtn(); }
+function sendMsgBtn() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const msgs = document.getElementById('chat-messages');
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const div = document.createElement('div');
+  div.innerHTML = `<div class="msg msg-me">${text}</div><div class="msg-time">${time}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+}
+
+// NEW ENTRY
+function openNewEntry() {
+  document.getElementById('new-entry-modal').classList.add('open');
+}
+function closeNewEntry() {
+  document.getElementById('new-entry-modal').classList.remove('open');
+}
+
+function updateTitleCount() {
+  document.getElementById('title-count').textContent = document.getElementById('new-title').value.length;
+}
+function updateContentCount() {
+  document.getElementById('content-count').textContent = document.getElementById('new-content').value.length;
+}
+
+function submitEntry() {
+  const title = document.getElementById('new-title').value.trim();
+  const content = document.getElementById('new-content').value.trim();
+  const category = document.getElementById('new-category').value;
+  const anon = document.getElementById('anon-check').checked;
+
+  if (!title || !content) { showToast('Başlık ve içerik gerekli'); return; }
+
+  const newEntry = {
+    id: Date.now(),
+    title,
+    user: anon ? 'anonim_' + Math.floor(Math.random()*1000) : 'sen',
+    time: 'şimdi',
+    category,
+    content,
+    views: 0,
+    comments: 0,
+    hearts: 0,
+    replies: []
+  };
+
+  entries.unshift(newEntry);
+  renderEntries();
+  closeNewEntry();
+  showToast('Giriş paylaşıldı ✓');
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-content').value = '';
+  document.getElementById('title-count').textContent = '0';
+  document.getElementById('content-count').textContent = '0';
+}
+
+// HEART
+function heartEntry(id, el) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+  entry.hearts++;
+  el.querySelector('svg').style.stroke = '#e8a045';
+  el.querySelector('svg').style.fill = 'rgba(232,160,69,0.3)';
+  const nums = el.childNodes;
+  el.lastChild.textContent = ' ' + entry.hearts;
+  showToast('❤️');
+}
+
+// TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// FILTER BUTTONS
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// CATEGORY ITEMS
+document.querySelectorAll('.category-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// CLOSE ON OVERLAY CLICK
+document.getElementById('entry-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEntryModal();
+});
+document.getElementById('new-entry-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeNewEntry();
+});
+document.getElementById('chat-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeChat();
+});
+
+// INIT
+renderEntries();
+renderTrending();
+</script>
+</body>
+</html>
