@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Günün Mikrobiyolojisi — 10 Soru</title>
+<style>
+  :root{
+    --masa1:#6b5844;
+    --masa2:#544535;
+    --metin:#2f2a22;
+    --soluk:#6d6154;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 45%),
+      repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0 3px, transparent 3px 6px),
+      linear-gradient(160deg,var(--masa1),var(--masa2));
+    background-attachment:fixed;
+    min-height:100vh;
+    color:#f3ede2;
+    padding:24px 18px 60px;
+  }
+  header{max-width:1180px;margin:0 auto 26px;}
+  .ust{
+    display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 22px;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,.16);
+    padding-bottom:16px;
+  }
+  h1{
+    font-family:'Segoe Print','Comic Sans MS','Bradley Hand',cursive;
+    font-size:30px;font-weight:700;letter-spacing:.4px;
+    text-shadow:0 2px 6px rgba(0,0,0,.4);
+  }
+  h1 span{display:block;font-size:14px;font-family:'Segoe UI',sans-serif;
+    font-weight:400;opacity:.72;letter-spacing:2.4px;text-transform:uppercase;margin-top:6px;text-shadow:none;}
+  .tarih{font-size:15px;opacity:.85;}
+  .tarih b{display:block;font-size:20px;opacity:1;font-weight:600;}
+  .sayaclar{display:flex;gap:10px;flex-wrap:wrap;}
+  .rozet{
+    background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.14);
+    border-radius:10px;padding:8px 13px;font-size:12px;line-height:1.5;
+    min-width:92px;
+  }
+  .rozet b{display:block;font-size:19px;font-weight:600;}
+  .rozet small{opacity:.65;text-transform:uppercase;letter-spacing:.8px;font-size:10px;}
+
+  .araclar{max-width:1180px;margin:18px auto 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  button.dg{
+    font-family:inherit;font-size:13px;cursor:pointer;
+    background:rgba(255,255,255,.1);color:#f5efe4;
+    border:1px solid rgba(255,255,255,.2);border-radius:8px;
+    padding:9px 15px;transition:.15s;
+  }
+  button.dg:hover{background:rgba(255,255,255,.2);}
+  button.dg.tehlike{border-color:rgba(255,160,150,.4);color:#ffd7d2;}
+  .ipucu{font-size:12px;opacity:.6;margin-left:auto;}
+
+  .tahta{
+    max-width:1180px;margin:26px auto 0;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:26px 22px;
+  }
+
+  /* ---- POST IT ---- */
+  .pusula{perspective:1400px;min-height:270px;}
+  .kagit{
+    position:relative;width:100%;height:100%;min-height:270px;
+    transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.1,.2,1);
+    cursor:pointer;
+  }
+  .pusula.acik .kagit{transform:rotateY(180deg);}
+  .yuz{
+    position:absolute;inset:0;backface-visibility:hidden;
+    border-radius:2px 2px 3px 3px;
+    padding:26px 20px 34px;
+    display:flex;flex-direction:column;
+    color:var(--metin);
+    box-shadow:2px 5px 14px rgba(0,0,0,.35);
+    overflow:hidden;
+  }
+  .yuz::after{ /* köşe kıvrımı */
+    content:"";position:absolute;right:0;bottom:0;
+    border-width:0 0 20px 20px;border-style:solid;
+    border-color:transparent transparent rgba(0,0,0,.12) transparent;
+  }
+  .arka{transform:rotateY(180deg);overflow-y:auto;}
+  .konu{
+    font-size:10px;letter-spacing:1.6px;text-transform:uppercase;
+    font-weight:700;opacity:.5;margin-bottom:10px;
+    display:flex;justify-content:space-between;
+  }
+  .soru{
+    font-family:'Segoe Print','Comic Sans MS','Bradley Hand',cursive;
+    font-size:16.5px;line-height:1.55;flex:1;
+  }
+  .cevap{font-size:14px;line-height:1.62;flex:1;}
+  .alt{
+    font-size:10.5px;opacity:.5;margin-top:12px;letter-spacing:.4px;
+  }
+  /* bant */
+  .bant{
+    position:absolute;top:0;left:50%;transform:translateX(-50%) rotate(-1.5deg);
+    width:74px;height:16px;background:rgba(255,255,255,.5);
+    border-left:1px solid rgba(255,255,255,.6);border-right:1px solid rgba(255,255,255,.6);
+    box-shadow:0 1px 3px rgba(0,0,0,.14);
+  }
+  /* renkler */
+  .r0 .yuz{background:#fdf07a;} .r0 .yuz.arka{background:#fbe95c;}
+  .r1 .yuz{background:#b6f2a0;} .r1 .yuz.arka{background:#a4ec8c;}
+  .r2 .yuz{background:#a8d8ff;} .r2 .yuz.arka{background:#93ccfb;}
+  .r3 .yuz{background:#ffb8d0;} .r3 .yuz.arka{background:#fca6c2;}
+  .r4 .yuz{background:#ffd29a;} .r4 .yuz.arka{background:#fcc484;}
+  .r5 .yuz{background:#d9bdff;} .r5 .yuz.arka{background:#cdaaff;}
+  /* eğiklikler */
+  .e0{transform:rotate(-1.6deg);} .e1{transform:rotate(1.2deg);}
+  .e2{transform:rotate(-.6deg);} .e3{transform:rotate(2deg);}
+  .e4{transform:rotate(-2.2deg);} .e5{transform:rotate(.7deg);}
+  .pusula:hover{filter:brightness(1.03);}
+
+  /* arşiv */
+  .arsiv{max-width:1180px;margin:44px auto 0;}
+  .arsiv h2{font-size:15px;letter-spacing:1.6px;text-transform:uppercase;opacity:.7;margin-bottom:14px;font-weight:600;}
+  .gunler{display:flex;flex-direction:column;gap:8px;}
+  details.gun{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;}
+  details.gun summary{cursor:pointer;font-size:13px;opacity:.9;}
+  details.gun ol{margin:12px 0 4px 20px;font-size:12.5px;line-height:1.75;opacity:.85;}
+  details.gun ol li{margin-bottom:6px;}
+  details.gun ol li em{display:block;font-style:normal;opacity:.6;font-size:11.5px;}
+
+  footer{max-width:1180px;margin:40px auto 0;font-size:11.5px;opacity:.45;text-align:center;line-height:1.8;}
+
+  .uyari{
+    max-width:1180px;margin:18px auto 0;background:rgba(255,225,150,.14);
+    border:1px solid rgba(255,225,150,.3);border-radius:8px;padding:12px 16px;font-size:13px;
+  }
+  @media(max-width:600px){
+    body{padding:16px 12px 40px;}
+    h1{font-size:23px;}
+    .tahta{grid-template-columns:1fr;gap:22px;}
+    .ipucu{display:none;}
+  }
+  @media print{
+    body{background:#fff;color:#000;}
+    .araclar,.arsiv,footer,.ipucu{display:none;}
+    .pusula.acik .kagit{transform:none;}
+    .yuz{position:relative;box-shadow:none;border:1px solid #ccc;}
+    .arka{transform:none;margin-top:8px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="ust">
+    <h1>Günün Mikrobiyolojisi<span>10 soru · her gün yeni</span></h1>
+    <div class="tarih" id="tarihKutu"></div>
+    <div class="sayaclar" id="sayaclar"></div>
+  </div>
+</header>
+
+<div id="uyariAlani"></div>
+
+<div class="araclar">
+  <button class="dg" id="btnHepsi">Tüm cevapları aç</button>
+  <button class="dg" id="btnKapat">Tümünü kapat</button>
+  <button class="dg" id="btnYazdir">Yazdır</button>
+  <button class="dg tehlike" id="btnSifirla">Geçmişi sıfırla</button>
+  <span class="ipucu">Cevabı görmek için post-it'e tıkla</span>
+</div>
+
+<main class="tahta" id="tahta"></main>
+
+<section class="arsiv" id="arsivAlani"></section>
+
+<footer>
+  Soru bankası: <span id="bankaSayi"></span> soru · Bakteriyoloji, Seroloji, Mikoloji, Parazitoloji, IFA, Flow Sitometri<br>
+  Sorulmuş sorular tekrar sorulmaz. Veriler yalnızca bu bilgisayarda, tarayıcı hafızasında saklanır.
+</footer>
+
+<script src="sorular.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var GUNLUK = 10;
+  var ANAHTAR = "mikroQuiz_v1";
+
+  /* ---------- depolama ---------- */
+  function bosDurum(){ return {gorulen:[], arsiv:[], tur:1}; }
+
+  function oku(){
+    try{
+      var ham = localStorage.getItem(ANAHTAR);
+      if(!ham) return bosDurum();
+      var d = JSON.parse(ham);
+      if(!d || !Array.isArray(d.gorulen)) return bosDurum();
+      if(!Array.isArray(d.arsiv)) d.arsiv = [];
+      if(!d.tur) d.tur = 1;
+      return d;
+    }catch(e){ return bosDurum(); }
+  }
+
+  function yaz(d){
+    try{ localStorage.setItem(ANAHTAR, JSON.stringify(d)); }
+    catch(e){ /* özel mod / dolu kota — sessizce geç */ }
+  }
+
+  /* ---------- tarih ---------- */
+  function bugunKod(){
+    var t = new Date();
+    var ay = String(t.getMonth()+1).padStart(2,"0");
+    var gn = String(t.getDate()).padStart(2,"0");
+    return t.getFullYear()+"-"+ay+"-"+gn;
+  }
+  var AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  var GUNLER = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+  function tarihYazi(kod){
+    var p = kod.split("-");
+    var t = new Date(+p[0], +p[1]-1, +p[2]);
+    return t.getDate()+" "+AYLAR[t.getMonth()]+" "+t.getFullYear()+", "+GUNLER[t.getDay()];
+  }
+
+  /* ---------- günün sorularını seç ---------- */
+  function karistir(dizi){
+    var a = dizi.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var g = a[i]; a[i]=a[j]; a[j]=g;
+    }
+    return a;
+  }
+
+  // Konuları olabildiğince dengeli dağıtarak seç
+  function seckiYap(kullanilabilir){
+    var konuHavuz = {};
+    kullanilabilir.forEach(function(i){
+      var k = SORULAR[i].k;
+      (konuHavuz[k] = konuHavuz[k] || []).push(i);
+    });
+    var konular = karistir(Object.keys(konuHavuz));
+    konular.forEach(function(k){ konuHavuz[k] = karistir(konuHavuz[k]); });
+
+    var secim = [];
+    var tur = 0;
+    while(secim.length < GUNLUK && tur < 200){
+      var eklendi = false;
+      for(var c=0;c<konular.length && secim.length<GUNLUK;c++){
+        var havuz = konuHavuz[konular[c]];
+        if(havuz.length){ secim.push(havuz.shift()); eklendi = true; }
+      }
+      if(!eklendi) break;
+      tur++;
+    }
+    return secim;
+  }
+
+  var durum = oku();
+  var bugun = bugunKod();
+  var yeniTurBasladi = false;
+
+  // bugün için seçim var mı?
+  var bugunKaydi = null;
+  for(var i=0;i<durum.arsiv.length;i++){
+    if(durum.arsiv[i].t === bugun){ bugunKaydi = durum.arsiv[i]; break; }
+  }
+
+  if(!bugunKaydi){
+    var gorulenSet = {};
+    durum.gorulen.forEach(function(x){ gorulenSet[x] = true; });
+    var kalan = [];
+    for(var s=0;s<SORULAR.length;s++){ if(!gorulenSet[s]) kalan.push(s); }
+
+    // banka bittiyse yeni tura geç
+    if(kalan.length === 0){
+      durum.gorulen = [];
+      durum.tur = (durum.tur||1) + 1;
+      yeniTurBasladi = true;
+      kalan = [];
+      for(var s2=0;s2<SORULAR.length;s2++) kalan.push(s2);
+    }
+
+    var secilen = seckiYap(kalan);
+    bugunKaydi = {t:bugun, ids:secilen, tur:durum.tur};
+    durum.arsiv.unshift(bugunKaydi);
+    durum.gorulen = durum.gorulen.concat(secilen);
+    if(durum.arsiv.length > 400) durum.arsiv.length = 400;
+    yaz(durum);
+  }
+
+  /* ---------- ekrana bas ---------- */
+  document.getElementById("bankaSayi").textContent = SORULAR.length;
+
+  document.getElementById("tarihKutu").innerHTML =
+    "<b>"+tarihYazi(bugun)+"</b>Bugünün soruları";
+
+  var kalanSayi = SORULAR.length - durum.gorulen.length;
+  var gunSayi = durum.arsiv.length;
+  document.getElementById("sayaclar").innerHTML =
+    rozet(gunSayi,"çalışılan gün") +
+    rozet(durum.gorulen.length+" / "+SORULAR.length,"sorulan soru") +
+    rozet(kalanSayi,"bankada kalan") +
+    (durum.tur>1 ? rozet(durum.tur+". tur","döngü") : "");
+
+  function rozet(deger, etiket){
+    return '<div class="rozet"><b>'+deger+'</b><small>'+etiket+'</small></div>';
+  }
+
+  if(yeniTurBasladi){
+    document.getElementById("uyariAlani").innerHTML =
+      '<div class="uyari">Soru bankasındaki '+SORULAR.length+' sorunun tamamı soruldu. '+
+      durum.tur+'. tur başladı; sorular yeniden karıştırılarak sorulmaya devam ediyor. '+
+      'Yeni soru eklemek için <b>sorular.js</b> dosyasının sonuna aynı formatta satır ekleyebilirsin.</div>';
+  } else if(kalanSayi < GUNLUK*3 && kalanSayi > 0){
+    document.getElementById("uyariAlani").innerHTML =
+      '<div class="uyari">Bankada '+kalanSayi+' soru kaldı (yaklaşık '+Math.ceil(kalanSayi/GUNLUK)+' gün). '+
+      '<b>sorular.js</b> dosyasına yeni sorular ekleyebilirsin.</div>';
+  }
+
+  function kacis(m){
+    return String(m).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  var tahta = document.getElementById("tahta");
+  bugunKaydi.ids.forEach(function(id, sira){
+    var q = SORULAR[id];
+    if(!q) return;
+    var kart = document.createElement("div");
+    kart.className = "pusula r"+(sira%6)+" e"+(sira%6);
+    kart.innerHTML =
+      '<div class="kagit">'+
+        '<div class="yuz on">'+
+          '<div class="bant"></div>'+
+          '<div class="konu"><span>'+kacis(q.k)+'</span><span>'+(sira+1)+'/'+bugunKaydi.ids.length+'</span></div>'+
+          '<div class="soru">'+kacis(q.s)+'</div>'+
+          '<div class="alt">↻ cevap için tıkla</div>'+
+        '</div>'+
+        '<div class="yuz arka">'+
+          '<div class="konu"><span>Cevap</span><span>'+(sira+1)+'</span></div>'+
+          '<div class="cevap">'+kacis(q.c)+'</div>'+
+          '<div class="alt">↻ soruya dön</div>'+
+        '</div>'+
+      '</div>';
+    kart.addEventListener("click", function(){ kart.classList.toggle("acik"); });
+    tahta.appendChild(kart);
+  });
+
+  // uzun içerikli kartların yüksekliğini içeriğe göre büyüt
+  function yukseklikAyarla(){
+    [].forEach.call(document.querySelectorAll(".pusula"), function(k){
+      k.style.minHeight = "";
+      k.querySelector(".kagit").style.minHeight = "";
+      var on = k.querySelector(".on"), arka = k.querySelector(".arka");
+      var h = Math.max(270, on.scrollHeight, arka.scrollHeight);
+      k.style.minHeight = h + "px";
+      k.querySelector(".kagit").style.minHeight = h + "px";
+    });
+  }
+  yukseklikAyarla();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(yukseklikAyarla);
+  var zaman;
+  window.addEventListener("resize", function(){
+    clearTimeout(zaman); zaman = setTimeout(yukseklikAyarla, 150);
+  });
+
+  document.getElementById("btnHepsi").onclick = function(){
+    [].forEach.call(document.querySelectorAll(".pusula"), function(k){ k.classList.add("acik"); });
+  };
+  document.getElementById("btnKapat").onclick = function(){
+    [].forEach.call(document.querySelectorAll(".pusula"), function(k){ k.classList.remove("acik"); });
+  };
+  document.getElementById("btnYazdir").onclick = function(){ window.print(); };
+  document.getElementById("btnSifirla").onclick = function(){
+    if(confirm("Tüm geçmiş silinecek ve sorular en baştan sorulmaya başlanacak. Emin misin?")){
+      localStorage.removeItem(ANAHTAR);
+      location.reload();
+    }
+  };
+
+  /* ---------- arşiv ---------- */
+  var oncekiler = durum.arsiv.filter(function(g){ return g.t !== bugun; });
+  if(oncekiler.length){
+    var h = '<h2>Önceki günler</h2><div class="gunler">';
+    oncekiler.slice(0,60).forEach(function(g){
+      h += '<details class="gun"><summary>'+tarihYazi(g.t)+' — '+g.ids.length+' soru</summary><ol>';
+      g.ids.forEach(function(id){
+        var q = SORULAR[id];
+        if(!q) return;
+        h += '<li>'+kacis(q.s)+'<em>'+kacis(q.c)+'</em></li>';
+      });
+      h += '</ol></details>';
+    });
+    h += '</div>';
+    document.getElementById("arsivAlani").innerHTML = h;
+  }
+})();
+</script>
+</body>
+</html>
