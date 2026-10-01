@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFA Pattern Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>IFA Pattern Guide</h1>
+      <p class="sub">Guided HEp-2 indirect immunofluorescence pattern evaluation (ICAP AC-0 … AC-29)</p>
+    </div>
+  </div>
+  <button id="btn-new" class="btn ghost" type="button">New evaluation</button>
+</header>
+
+<main class="layout">
+  <!-- Left: images -->
+  <section class="panel viewer-panel" aria-label="Images">
+    <div id="dropzone" class="dropzone" tabindex="0">
+      <input id="file-input" type="file" accept="image/*" multiple hidden>
+      <p><strong>Drop IFA images here</strong> or <u>click to upload</u></p>
+      <p class="muted small">PNG, JPG, TIFF (browser-supported). Images stay on your device.</p>
+    </div>
+
+    <div id="viewer" class="viewer hidden">
+      <div class="stage" id="stage">
+        <img id="main-image" alt="Selected IFA image" draggable="false">
+      </div>
+      <div class="controls">
+        <div class="ctrl-group">
+          <button class="btn icon" id="zoom-out" type="button" title="Zoom out">−</button>
+          <span id="zoom-label" class="mono">100%</span>
+          <button class="btn icon" id="zoom-in" type="button" title="Zoom in">+</button>
+          <button class="btn small" id="zoom-reset" type="button">Fit</button>
+        </div>
+        <label class="slider">Brightness <input type="range" id="brightness" min="50" max="250" value="100"></label>
+        <label class="slider">Contrast <input type="range" id="contrast" min="50" max="250" value="100"></label>
+        <label class="check"><input type="checkbox" id="grayscale"> Grayscale</label>
+      </div>
+      <div id="thumbs" class="thumbs"></div>
+    </div>
+  </section>
+
+  <!-- Right: guide -->
+  <section class="panel guide-panel" aria-label="Guide">
+    <form id="sample-form" class="sample">
+      <label>Sample ID <input id="sample-id" type="text" placeholder="e.g. 2026-0412"></label>
+      <label>Substrate
+        <select id="substrate">
+          <option>HEp-2</option>
+          <option>HEp-2000</option>
+          <option>HEp-20-10</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label>Titer / dilution
+        <select id="titer">
+          <option value="">—</option>
+          <option>1:80</option><option>1:160</option><option>1:320</option>
+          <option>1:640</option><option>1:1280</option><option>≥1:2560</option>
+        </select>
+      </label>
+      <label>Intensity
+        <select id="intensity">
+          <option value="">—</option>
+          <option>Weak (1+)</option><option>Moderate (2+)</option>
+          <option>Strong (3+)</option><option>Very strong (4+)</option>
+        </select>
+      </label>
+    </form>
+
+    <div id="guide"></div>
+  </section>
+</main>
+
+<footer class="foot muted small">
+  Decision-support tool for trained readers. Pattern names follow the International Consensus on ANA Patterns (ICAP).
+  Results must be interpreted together with titer, specific antibody tests and the clinical picture — this is not a diagnosis.
+</footer>
+
+<script src="patterns.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
