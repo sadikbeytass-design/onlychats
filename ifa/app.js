@@ -243,7 +243,7 @@
       guide.innerHTML = `
         <div class="intro">
           <h2>Start evaluation</h2>
-          <p>Upload one or more IFA images, then answer the questions step by step. Each answer narrows down the
+          <p>A synthetic example image is loaded so you can try the guide right away. Upload your own IFA images, then answer the questions step by step. Each answer narrows down the
              pattern until the guide gives you the ICAP pattern name (AC code).</p>
           <ul class="tips">
             <li>Read interphase cells first, then confirm with mitotic cells.</li>
@@ -340,14 +340,13 @@
       <div class="nav wrap">
         <button id="btn-back" class="btn ghost" type="button">← Back</button>
         <button id="btn-add" class="btn" type="button">+ Add another pattern</button>
-        <button id="btn-print" class="btn" type="button">Print report</button>
-        <button id="btn-json" class="btn" type="button">Download JSON</button>
+        <button id="btn-copy" class="btn" type="button">Copy report</button>
         <button id="btn-restart" class="btn primary" type="button">New evaluation</button>
-      </div>`;
+      </div>
+      <textarea id="report-text" class="report-text" rows="12" readonly hidden aria-label="Report text"></textarea>`;
     $("#btn-back").addEventListener("click", back);
     $("#btn-add").addEventListener("click", addAnotherPattern);
-    $("#btn-print").addEventListener("click", printReport);
-    $("#btn-json").addEventListener("click", downloadJson);
+    $("#btn-copy").addEventListener("click", (e) => copyReport(e.currentTarget));
     $("#btn-restart").addEventListener("click", reset);
     guide.querySelectorAll("[data-remove-finding]").forEach((b) =>
       b.addEventListener("click", () => {
@@ -376,51 +375,51 @@
     };
   }
 
-  function downloadJson() {
-    const data = reportData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `ifa-report-${data.sampleId || "sample"}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  function reportText() {
+    const d = reportData();
+    const lines = [
+      "HEp-2 IFA pattern report",
+      `Date: ${new Date(d.date).toLocaleString()}`,
+      `Sample ID: ${d.sampleId || "-"}`,
+      `Substrate: ${d.substrate}`,
+      `Titer: ${d.titer || "-"}`,
+      `Intensity: ${d.intensity || "-"}`,
+      `Images: ${d.images.join(", ") || "-"}`,
+      "",
+      `RESULT: ${d.result}`,
+    ];
+    d.findings.forEach((f) => {
+      lines.push("", `${f.code} - ${f.name}`);
+      if (f.antigens.length) lines.push(`  Antigens: ${f.antigens.join(", ")}`);
+      if (f.associations.length) lines.push(`  Associations: ${f.associations.join("; ")}`);
+      lines.push("  Decision path:");
+      f.decisionPath.forEach((p, i) => lines.push(`    ${i + 1}. ${p.question} -> ${p.answer}`));
+    });
+    lines.push("", "Pattern nomenclature according to ICAP. Decision support only; interpret with titer, specific antibody tests and clinical findings.");
+    return lines.join("\n");
   }
 
-  function printReport() {
-    const d = reportData();
-    const img = state.images.find((i) => i.id === state.selected);
-    const w = window.open("", "_blank");
-    if (!w) return alert("Please allow pop-ups to print the report.");
-    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>IFA report ${esc(d.sampleId || "")}</title>
-      <style>
-        body{font-family:system-ui,sans-serif;margin:32px;color:#111;max-width:800px}
-        h1{font-size:20px;margin:0 0 4px} h2{font-size:16px;margin:20px 0 6px}
-        table{border-collapse:collapse;width:100%;font-size:14px} td{padding:4px 8px;border-bottom:1px solid #ddd}
-        td:first-child{color:#555;width:160px} .res{font-size:18px;font-weight:600;margin:12px 0}
-        img{max-width:320px;border:1px solid #ccc;margin-top:8px} small{color:#666} li{margin:2px 0}
-      </style></head><body>
-      <h1>HEp-2 IFA pattern report</h1><small>${esc(new Date(d.date).toLocaleString())}</small>
-      <table>
-        <tr><td>Sample ID</td><td>${esc(d.sampleId || "—")}</td></tr>
-        <tr><td>Substrate</td><td>${esc(d.substrate)}</td></tr>
-        <tr><td>Titer</td><td>${esc(d.titer || "—")}</td></tr>
-        <tr><td>Intensity</td><td>${esc(d.intensity || "—")}</td></tr>
-        <tr><td>Images</td><td>${esc(d.images.join(", "))}</td></tr>
-      </table>
-      <p class="res">Result: ${esc(d.result)}</p>
-      ${d.findings
-        .map(
-          (f) => `<h2>${esc(f.code)} — ${esc(f.name)}</h2>
-          ${f.antigens.length ? `<div><b>Antigens:</b> ${esc(f.antigens.join(", "))}</div>` : ""}
-          ${f.associations.length ? `<div><b>Associations:</b> ${esc(f.associations.join("; "))}</div>` : ""}
-          <ol>${f.decisionPath.map((p) => `<li>${esc(p.question)} → <b>${esc(p.answer)}</b></li>`).join("")}</ol>`
-        )
-        .join("")}
-      ${img ? `<img src="${img.url}" alt="">` : ""}
-      <p><small>Pattern nomenclature according to ICAP. Decision-support output — interpret with titer, specific antibody testing and clinical findings.</small></p>
-      <script>window.onload=()=>window.print()<\/script>
-      </body></html>`);
-    w.document.close();
+  function copyReport(btn) {
+    const text = reportText();
+    const box = $("#report-text");
+    box.value = text;
+    box.hidden = false;
+    const done = (msg) => {
+      btn.textContent = msg;
+      setTimeout(() => (btn.textContent = "Copy report"), 2000);
+    };
+    try {
+      navigator.clipboard.writeText(text).then(
+        () => done("Copied"),
+        () => {
+          box.select();
+          done("Select and copy below");
+        }
+      );
+    } catch {
+      box.select();
+      done("Select and copy below");
+    }
   }
 
   // ------------------------------------------------------------------
@@ -438,8 +437,23 @@
     }
   });
 
-  $("#btn-new").addEventListener("click", () => {
-    if (state.findings.length && !confirm("Discard the current evaluation?")) return;
+  let confirmTimer = null;
+  $("#btn-new").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    if (state.findings.length && !confirmTimer) {
+      btn.textContent = "Click again to discard";
+      btn.classList.add("warn");
+      confirmTimer = setTimeout(() => {
+        confirmTimer = null;
+        btn.textContent = "New evaluation";
+        btn.classList.remove("warn");
+      }, 3000);
+      return;
+    }
+    clearTimeout(confirmTimer);
+    confirmTimer = null;
+    btn.textContent = "New evaluation";
+    btn.classList.remove("warn");
     state.images.forEach((i) => URL.revokeObjectURL(i.url));
     state.images = [];
     state.selected = null;
@@ -450,6 +464,74 @@
     renderViewer();
   });
 
+  // ------------------------------------------------------------------
+  // Example image: a synthetic HEp-2-like field (nuclear fine speckled look)
+  // so the tool opens in a working state. Replace it with your own images.
+  // ------------------------------------------------------------------
+  function exampleImage() {
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const W = 960, H = 720;
+    const c = document.createElement("canvas");
+    c.width = W;
+    c.height = H;
+    const x = c.getContext("2d");
+    x.fillStyle = "#020502";
+    x.fillRect(0, 0, W, H);
+    const cells = [];
+    for (let gy = 0; gy < 5; gy++)
+      for (let gx = 0; gx < 6; gx++)
+        cells.push({ cx: 90 + gx * 160 + (rnd() - 0.5) * 50, cy: 80 + gy * 145 + (rnd() - 0.5) * 40, r: 42 + rnd() * 14, a: rnd() * Math.PI });
+    cells.forEach((cell, i) => {
+      const mitotic = i === 14;
+      // faint cytoplasm
+      x.fillStyle = "rgba(40,120,50,0.18)";
+      x.beginPath();
+      x.ellipse(cell.cx, cell.cy, cell.r * 1.7, cell.r * 1.35, cell.a, 0, 7);
+      x.fill();
+      if (mitotic) {
+        // speckled cytoplasm around a dark metaphase plate
+        for (let k = 0; k < 900; k++) {
+          const t = rnd() * 7, d = Math.sqrt(rnd()) * cell.r * 1.3;
+          x.fillStyle = `rgba(90,230,100,${0.25 + rnd() * 0.5})`;
+          x.fillRect(cell.cx + Math.cos(t) * d, cell.cy + Math.sin(t) * d, 2, 2);
+        }
+        x.fillStyle = "#031003";
+        x.fillRect(cell.cx - 8, cell.cy - cell.r * 0.9, 16, cell.r * 1.8);
+        return;
+      }
+      // nucleus: base glow + fine speckles, darker nucleoli
+      const g = x.createRadialGradient(cell.cx, cell.cy, 2, cell.cx, cell.cy, cell.r);
+      g.addColorStop(0, "rgba(60,190,70,0.55)");
+      g.addColorStop(1, "rgba(30,120,40,0.35)");
+      x.fillStyle = g;
+      x.beginPath();
+      x.ellipse(cell.cx, cell.cy, cell.r, cell.r * 0.8, cell.a, 0, 7);
+      x.fill();
+      for (let k = 0; k < 1400; k++) {
+        const t = rnd() * 7, d = Math.sqrt(rnd());
+        const px = cell.cx + Math.cos(t) * d * cell.r * Math.cos(cell.a) - Math.sin(t) * d * cell.r * 0.8 * Math.sin(cell.a);
+        const py = cell.cy + Math.cos(t) * d * cell.r * Math.sin(cell.a) + Math.sin(t) * d * cell.r * 0.8 * Math.cos(cell.a);
+        x.fillStyle = `rgba(120,255,120,${0.15 + rnd() * 0.55})`;
+        x.fillRect(px, py, 2, 2);
+      }
+      for (let n = 0; n < 2 + Math.floor(rnd() * 2); n++) {
+        x.fillStyle = "rgba(5,30,8,0.75)";
+        x.beginPath();
+        x.ellipse(cell.cx + (rnd() - 0.5) * cell.r, cell.cy + (rnd() - 0.5) * cell.r * 0.7, 6 + rnd() * 4, 5 + rnd() * 3, rnd() * 3, 0, 7);
+        x.fill();
+      }
+    });
+    return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
+  }
+
   renderViewer();
   renderGuide();
+  exampleImage().then((blob) => {
+    if (!blob || state.images.length) return;
+    state.images.push({ id: "example", name: "example-synthetic.png", url: URL.createObjectURL(blob) });
+    state.selected = "example";
+    renderViewer();
+    renderGuide();
+  });
 })();
